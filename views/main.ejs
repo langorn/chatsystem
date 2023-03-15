@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+</head>
+<body class="container">
+
+<header>
+</header>
+<main>
+  <div class="jumbotron">
+    <h1>Chatroom</h1>
+    <!-- <p>Dialog</p> -->
+  </div>
+  <div id="ranking" class="ranking"></div>
+  <div id="dialog" class="dialog"></div>
+  <div id="table">
+    <table>
+        <tr>
+            <td>Chatroom Channel</td>
+            <td>User</td>
+            <td>Message</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><input type="text" id="roomname" placeholder="Chatroom Channel" value="FreeForAll"></td>
+            <td><input type="text" id="username" placeholder="Username" value="Kevin"></td>
+            <td><input type="text" id="msg" placeholder="Please Enter Your Message"></td>
+            <td><button onclick="chat()">Submit</button></td>
+        </tr>
+  </table>
+</main>
+<footer>
+</footer>
+<script>
+
+
+    function chat() {
+        let roomName = document.getElementById("roomname").value;
+        let url  = `/api/chatroom/${roomName}/message`;
+        let msg = document.getElementById("msg").value;
+        let userName = document.getElementById("username").value;
+        postData(url, { msg: msg, username: userName}).then((data) => {
+            console.log(data);  
+        });
+    }
+
+    function getChannelMessage (socket) {
+        let chatroom = document.getElementById("roomname").value;
+        let message = { type: 'retrieveChatHistory', name: chatroom }
+        socket.send(JSON.stringify(message));
+    }
+
+    async function postData(url = "", data = {}) {
+        // Default options are marked with *
+        const response = await fetch(url, {
+            method: "POST", 
+            mode: "cors",
+            cache: "no-cache", 
+            credentials: "same-origin", 
+            headers: {
+            "Content-Type": "application/json",
+            },
+            redirect: "follow", 
+            referrerPolicy: "no-referrer",  
+            body: JSON.stringify(data),  
+        });
+        return response.json(); // parses JSON response into native JavaScript objects
+    }
+
+    // websocket to get realtime data
+    let socket = new WebSocket("ws://localhost:808");
+
+    socket.onopen = function(e) {
+        console.log("[open] Connection established");
+        console.log("Sending to server");
+        getChannelMessage(socket);
+    };
+
+    socket.onmessage = function(event) {
+        console.log(`[message] Data received from server: ${event.data}`);
+
+        try {
+            let result = JSON.parse(event.data);
+            if (result.type == 'chatHistory') {
+                let content = result.data.map(item => {
+                    return `<div>${item}</div>`;
+                })
+                document.getElementById('dialog').innerHTML = content.join('');
+            }
+            if (result.type == 'ranking') {
+                let title = '<div id="rankTitle">Top Rank Player:</div>';
+                let content = result.data.map(item => {
+                    return `<div class="player">${item.player}:${item.score}</div>`;
+                })
+                document.getElementById('ranking').innerHTML = title + content.join('');
+            }
+
+        } catch (e) {
+            console.log(e);
+        }
+
+
+    };
+
+    socket.onclose = function(event) {
+        if (event.wasClean) {
+            console.log(`[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+        } else {
+            console.log('[close] Connection died');
+        }
+    };
+
+    socket.onerror = function(error) {
+        console.log(`[error]`);
+    };
+
+</script>
+<style>
+    body {
+        font-family: 'Courier New', Courier, monospace;
+    }
+    #dialog {
+        min-height:350px;
+        min-width: 90%;
+        background-color:yellowgreen;
+        padding:20px;
+    }
+    #table {
+        margin:5px;
+    }
+    #ranking {
+        display:flex;
+        background-color:#585454;
+    }
+    .player {
+        margin:2px 5px 2px 15px;
+        color:aliceblue;
+    }
+    #rankTitle {
+        margin:2px 5px 2px 15px;
+        color:aliceblue;
+    }
+</style>
+</body>
+</html>
