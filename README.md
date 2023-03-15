@@ -4,7 +4,11 @@ This is a simple chat system built using **Redis**, **Node.js**, and **Express.j
 ## Installation
 To install this application, follow these steps:
 
-Clone the repository: git clone https://github.com/your-username/chat-system.git
+Clone the repository: 
+```
+git clone https://github.com/your-username/chat-system.git
+```
+
 > Navigate to the project directory: cd chat-system
 Install the dependencies: 
 ```
