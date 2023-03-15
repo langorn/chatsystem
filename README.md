@@ -9,7 +9,10 @@ Clone the repository:
 git clone https://github.com/your-username/chat-system.git
 ```
 
-> Navigate to the project directory: cd chat-system
+> Navigate to the project directory: 
+```
+cd chatsystem-main
+```
 Install the dependencies: 
 ```
 npm install
